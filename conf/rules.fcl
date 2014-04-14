@@ -1,0 +1,47 @@
+FUNCTION_BLOCK WebSpider
+
+	VAR_INPUT 
+		position : REAL;
+		frequency : REAL;
+		distance : REAL;
+	END_VAR
+	VAR_OUTPUT 
+		score : REAL;
+	END_VAR
+	
+	FUZZIFY position
+		TERM out_web :=(0,1) (2,1) (2,0);
+		TERM in_title := (2,0) (2,1) (4,1) (6,0); 
+		TERM in_text := (2,0) (4,1) (6,1) (6,0);
+	END_FUZZIFY
+	
+	FUZZIFY frequency
+		TERM low := (0,0) (0,1) (8, 0); 
+		TERM high := (6, 0) (8, 1) (10,1) (10,0);
+	END_FUZZIFY
+	
+	FUZZIFY distance
+		TERM near :=(0,1) (5,1) (10,0);
+		TERM far := (5,0) (10,1) (20,1) (20,0); 
+	END_FUZZIFY
+	
+	DEFUZZIFY score
+		TERM low := (0,0) (0, 1) (30, 1) (50, 0);
+		TERM normal := gbell 20 4 60; 
+		TERM high := sigm 0.4 80;
+		METHOD : COG;
+		DEFAULT := 0;
+	END_DEFUZZIFY
+	
+	RULEBLOCK No1
+		AND : MIN;
+		ACT : MIN;
+		ACCU : MAX;
+		RULE 1 : IF position IS out_web THEN score IS low;
+		RULE 2 : IF position IS in_title AND position IS NOT in_text THEN score IS low;
+		RULE 3 : IF position IS in_text AND position IS in_text AND frequency IS high THEN score IS high;
+		RULE 4 : IF position IS NOT in_title AND frequency IS low THEN score IS low;
+		RULE 5 : IF position IS NOT in_title AND position IS in_text AND frequency IS high THEN score IS normal;
+
+	END_RULEBLOCK
+END_FUNCTION_BLOCK
