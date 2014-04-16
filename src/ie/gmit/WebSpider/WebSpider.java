@@ -1,13 +1,14 @@
 package ie.gmit.WebSpider;
 
 import ie.gmit.Fuzzy.MarkLink;
-import ie.gmit.Fuzzy.MarkSchema;
 import ie.gmit.WebNode.WebNode;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,17 +16,24 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class WebSpider {
+	private static final int NTHREDS = 20;
+	private static ExecutorService executor;
+	private static String[] keywords;
 	private static double threshold;
 	private static int depth;
 	private static int breadth;
-	private static Queue<WebNode> queue = new LinkedList<WebNode>();
-	private static Map<String, WebNode> hisMap = new HashMap<String, WebNode>();
+	private static Queue<WebNode> queue = new PriorityQueue<WebNode>();
+	private static volatile Map<String, WebNode> hisMap = new HashMap<String, WebNode>();
+	private static boolean up = false;
 
 	private WebSpider() {
 		super();
 	}
 
-	public static WebSpider getInstance(double threshold, int depth, int breadth) {
+	public static WebSpider getInstance(String[] keywords, double threshold,
+			int depth, int breadth) {
+		WebSpider.executor = Executors.newFixedThreadPool(NTHREDS);
+		WebSpider.keywords = keywords;
 		WebSpider.threshold = threshold;
 		WebSpider.depth = depth;
 		WebSpider.breadth = breadth;
@@ -34,68 +42,96 @@ public class WebSpider {
 
 	public void search(WebNode node) {
 		queue.add(node);
-		while (!queue.isEmpty()) {
-			WebNode tmpNode = queue.poll();
-			while ((hisMap.containsKey(tmpNode.getNodeURL().trim()) || tmpNode == null)
-					&& !queue.isEmpty()) {
-				tmpNode = queue.poll();
-			}
-			if (tmpNode.isGoalNode(WebSpider.threshold)
-					|| tmpNode.getNodeURL().equalsIgnoreCase(
-							"http://www.youtube.com/oracle/")) {
-				System.out.println("Reached goal node " + tmpNode.getNodeURL());
-				while (tmpNode.getParent() != null) {
-					tmpNode = tmpNode.getParent();
-					System.out.println(tmpNode.getNodeURL());
+		while (!queue.isEmpty() || up) {
+			if (!up) {
+				WebNode tmpNode = queue.poll();
+
+				if (tmpNode.isGoalNode(WebSpider.threshold)) {
+					System.out.println("Reached goal node "
+							+ tmpNode.getNodeURL());
+					while (tmpNode.getParent() != null) {
+						tmpNode = tmpNode.getParent();
+						System.out.println(tmpNode.getNodeURL());
+					}
+
+					System.exit(0);
+				} else {
+
+					System.out.println("visiting - >" + tmpNode.getNodeURL()
+							+ tmpNode.getDepth());
+
+					if (tmpNode.getDepth() < WebSpider.depth) {
+						Runnable worker = new ChildrenParser(tmpNode);
+						up = true;
+						WebSpider.executor.execute(worker);
+					} else if (queue.isEmpty())
+						WebSpider.executor.shutdown();
+
+					// generate children
+
 				}
 
-				System.exit(0);
-			} else {
-
-				if (!hisMap.containsKey(tmpNode.getNodeURL().trim())) {
-					System.out.println("visiting" + tmpNode.getNodeURL());
-					hisMap.put(tmpNode.getNodeURL().toString(), tmpNode);
-					this.getChildren(tmpNode);
-				}
-				// generate children
-
 			}
+
 		}
-		if (!queue.isEmpty()) {
-			node = queue.poll();
-		} else {
+		if (queue.isEmpty() && !up) {
+			System.out.println();
 			System.out.println("No result");
 		}
+
 	}
 
-	public void getChildren(WebNode node) {
-		System.out.println("here");
-		try {
-			Document doc = Jsoup.connect(node.getNodeURL()).get();
-			// System.out.println(doc.getElementsByTag("title"));
-			// System.out.println(doc.getElementsByTag("h2").get(2).text());
-			Elements links = doc.getElementsByTag("a");
-			for (Element link : links) {
+	class ChildrenParser implements Runnable {
 
-				String linkHref = link.attr("abs:href").trim();
-				if (!linkHref.isEmpty() && !hisMap.containsKey(linkHref)) {
-					MarkLink ml = MarkLink.getInstance();
-					MarkSchema ms = ml.generateMarkSchema(linkHref);
-					WebNode wn = new WebNode(linkHref);
-					wn.setScore(ml.getScore(ms));
-					wn.setParent(node);
-					node.addChildNode(wn);
+		private WebNode wbn;
+
+		public ChildrenParser(WebNode wbn) {
+			this.wbn = wbn;
+		}
+
+		@Override
+		public void run() {
+			PriorityQueue<WebNode> urlQue = new PriorityQueue<WebNode>();
+			try {
+				Document doc = Jsoup.connect(wbn.getNodeURL()).get();
+				// System.out.println(doc.getElementsByTag("title"));
+				// System.out.println(doc.getElementsByTag("h2").get(2).text());
+				Elements links = doc.getElementsByTag("a");
+
+				for (Element link : links) {
+					String linkHref = link.attr("abs:href").trim();
+					if (!linkHref.isEmpty() && !hisMap.containsKey(linkHref)
+							&& link.hasText() && linkHref.contains("http")) {
+
+						hisMap.put(linkHref, null);
+						WebNode wn = new WebNode(linkHref);
+						wn.scoreURL(keywords);
+						wn.setParent(wbn);
+						wn.setDepth(wbn.getDepth() + 1);
+						urlQue.add(wn);
+					}
+				}
+
+			} catch (Exception e) {
+				System.out.println("URL not valid:" + e.getMessage());
+			}
+			for (int i = 0; i < WebSpider.breadth; i++) {
+				// for (int i = children.length - 1; i >= 0; i--) {
+				// System.out.println(node.getNextChildren());
+				if (!urlQue.isEmpty()) {
+					WebNode wn = urlQue.poll();
+					MarkLink ml = new MarkLink(keywords, wn.getNodeURL());
+					// System.out.println(wn.getNodeURL() + wn.getScore());
+					// System.out.println(ml.getScore());
+					wn.setScore(ml.getScore());
+					wbn.addChildNode(wn);
+					queue.add(wn);
 				}
 			}
-		} catch (Exception e) {
-			System.out.println("URL not valid:" + e.getMessage());
+			WebSpider.up = false;
+
 		}
-		for (int i = 0; i < WebSpider.breadth; i++) {
-			// for (int i = children.length - 1; i >= 0; i--) {
-			// System.out.println(node.getNextChildren());
-			if (node.getNextChildren() != null)
-				queue.add(node.getNextChildren());
-		}
+
 	}
 
 }

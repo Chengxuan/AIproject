@@ -1,51 +1,104 @@
 package ie.gmit.Fuzzy;
 
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
 import net.sourceforge.jFuzzyLogic.rule.Variable;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class MarkLink {
 
-	private MarkLink() {
+	private String[] keywords = {};
+	private String title = "";
+	private String url = "";
+	private String subTitles = "";
+	private String text = "";
 
-	}
-
-	public static MarkLink getInstance() {
-		return new MarkLink();
-	}
-
-	public MarkSchema generateMarkSchema(String URL) {
-		WebModel wm = new WebModel();
+	public MarkLink(String[] keywords, String URL) {
+		this.keywords = keywords;
 		try {
 			Document doc = Jsoup.connect(URL).get();
-			wm.setTitle(doc.getElementsByTag("title").get(0).text());
-			wm.setURL(URL);
+			this.title = doc.title();
+			this.text = doc.text();
+			this.url = URL;
 			// System.out.println(doc.getElementsByTag("h2").get(2).text());
-			Elements links = doc.getElementsByTag("a");
-			for (Element link : links) {
-
-			}
+			Elements hTags = doc.select("h1, h2, h3, h4, h5, h6");
+			// System.out.println(hTags.text());
+			this.subTitles = hTags.text();
 		} catch (Exception e) {
 			System.out.println("URL not valid:" + e.getMessage());
 		}
-		return new MarkSchema(2, 15, 7);
 	}
 
-	public double getScore(MarkSchema ms) {
-		new MarkLink();
+	private double getPosition() {
+		double score = 0.0;
+		int count = 0;
+		for (int i = 0; i < keywords.length; i++) {
+			if (title.contains(keywords[i])) {
+				score += 8.0;
+				count++;
+			}
+
+			if (text.contains(keywords[i])) {
+				score += 2.0;
+				count++;
+			}
+
+			if (subTitles.contains(keywords[i])) {
+				score += 4.0;
+				count++;
+			}
+
+		}
+		score /= count == 0 ? 1 : count;
+		return score > 14.0 ? 14.0 : score;
+	}
+
+	private double getFrequency() {
+		double score = 0.0;
+		for (int i = 0; i < keywords.length; i++) {
+			int index = text.indexOf(keywords[i]);
+			int count = 0;
+			while (index != -1) {
+				index = text.indexOf(keywords[i], index + 1);
+
+				count++;
+			}
+			score += count;
+		}
+		// score /= keywords.length == 0 ? 1 : keywords.length;
+		return score > 1000.0 ? 1000.0 : score;
+	}
+
+	private double getDistance() {
+		double score = 0.0;
+		PriorityQueue<Double> abd = new PriorityQueue<Double>(10,
+				new Comparator<Double>() {
+					@Override
+					public int compare(Double o1, Double o2) {
+						// TODO Auto-generated method stub
+						return Double.compare(o1, o2);
+					}
+				});
+		return score;
+	}
+
+	public double getScore() {
 		FIS fis = FIS.load("conf/rules.fcl", true); // Load and parse the FCL
 		FunctionBlock fb = fis.getFunctionBlock("WebSpider");
 		// JFuzzyChart.get().chart(fis);// Display the linguistic variables and
 		// terms
-		fis.setVariable("position", ms.getPosition()); // Apply a value to a
-														// variable
-		fis.setVariable("frequency", ms.getFrequency());
-		fis.setVariable("distance", ms.getDistance());
+		fis.setVariable("position", this.getPosition()); // Apply a
+															// value
+															// to a
+		// variable
+		fis.setVariable("frequency", this.getFrequency());
+		fis.setVariable("distance", this.getDistance());
 		fis.evaluate(); // Execute the fuzzy inference engine
 		Variable tip = fb.getVariable("score");
 		// System.out.println(tip.getValue());
@@ -56,15 +109,7 @@ public class MarkLink {
 	// public static void main(String[] args) {
 	// MarkSchema ms = new MarkSchema(4, 20, 0);
 	// // System.out.println(MarkLink.getScore(ms));
-	// PriorityQueue<Double> abd = new PriorityQueue<Double>(10,
-	// new Comparator<Double>() {
-	//
-	// @Override
-	// public int compare(Double o1, Double o2) {
-	// // TODO Auto-generated method stub
-	// return Double.compare(o1, o2);
-	// }
-	// });
+
 	// abd.add(125.21);
 	// abd.add(123.02);
 	// abd.add(123.03);

@@ -3,11 +3,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class Runner {
-	private static final int NTHREDS = 500;
+	private static final int NTHREDS = 1000;
 
 	public static void main(String[] args) throws Exception {
 		ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);
-		for (int i = 0; i < 500; i++) {
+		for (int i = 0; i < 5000; i++) {
 			Runnable worker = new MyRunnable(10000000L + i);
 			executor.execute(worker);
 		}

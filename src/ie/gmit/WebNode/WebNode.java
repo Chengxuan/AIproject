@@ -9,9 +9,18 @@ public class WebNode implements Comparable<WebNode> {
 	private Queue<WebNode> children = new PriorityQueue<WebNode>();
 	private boolean visited = false;
 	private double score;
+	private int depth;
 
 	public WebNode(String name) {
 		this.nodeURL = name;
+	}
+
+	public void scoreURL(String[] keywords) {
+		for (int i = 0; i < keywords.length; i++) {
+			if (this.nodeURL.toLowerCase().trim()
+					.contains(keywords[i].toLowerCase().trim()))
+				this.score += 100.0;
+		}
 	}
 
 	public WebNode getNextChildren() {
@@ -55,7 +64,7 @@ public class WebNode implements Comparable<WebNode> {
 	}
 
 	public boolean isGoalNode(double threshold) {
-		return this.score >= threshold ? true : false;
+		return this.score / 100 >= threshold ? true : false;
 	}
 
 	public String toString() {
@@ -80,7 +89,7 @@ public class WebNode implements Comparable<WebNode> {
 	 *            the score to set
 	 */
 	public void setScore(double score) {
-		this.score = score;
+		this.score += score;
 	}
 
 	/**
@@ -96,6 +105,21 @@ public class WebNode implements Comparable<WebNode> {
 	 */
 	public void setParent(WebNode parent) {
 		this.parent = parent;
+	}
+
+	/**
+	 * @return the depth
+	 */
+	public int getDepth() {
+		return depth;
+	}
+
+	/**
+	 * @param depth
+	 *            the depth to set
+	 */
+	public void setDepth(int depth) {
+		this.depth = depth;
 	}
 
 }
