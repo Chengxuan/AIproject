@@ -46,6 +46,9 @@ public class WebSpider {
 		while (!queue.isEmpty() || up) {
 			if (!up) {
 				WebNode tmpNode = queue.poll();
+				if (tmpNode.getScore() < 10) {
+					queue.clear();
+				}
 				if (WebSpider.highest.getScore() < tmpNode.getScore()) {
 					WebSpider.highest = tmpNode;
 				}
@@ -60,7 +63,6 @@ public class WebSpider {
 
 					System.exit(0);
 				} else {
-
 					System.out.println("visiting - >" + tmpNode.getNodeURL()
 							+ tmpNode.getDepth() + "--------"
 							+ tmpNode.getScore());

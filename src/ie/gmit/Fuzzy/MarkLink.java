@@ -4,9 +4,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import net.sourceforge.jFuzzyLogic.FIS;
-import net.sourceforge.jFuzzyLogic.FunctionBlock;
 import net.sourceforge.jFuzzyLogic.plot.JFuzzyChart;
-import net.sourceforge.jFuzzyLogic.rule.Variable;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,7 +14,6 @@ public class MarkLink {
 
 	private String[] keywords = {};
 	private String title = "";
-	private String url = "";
 	private String subTitles = "";
 	private String text = "";
 
@@ -26,7 +23,6 @@ public class MarkLink {
 			Document doc = Jsoup.connect(URL).get();
 			this.title = doc.title();
 			this.text = doc.text();
-			this.url = URL;
 			// System.out.println(doc.getElementsByTag("h2").get(2).text());
 			Elements hTags = doc.select("h1, h2, h3, h4, h5, h6");
 			// System.out.println(hTags.text());
@@ -38,26 +34,19 @@ public class MarkLink {
 
 	private double getPosition() {
 		double score = 0.0;
-		int count = 0;
+
 		for (int i = 0; i < keywords.length; i++) {
-			if (title.contains(keywords[i])) {
+			if (title.contains(keywords[i]) || subTitles.contains(keywords[i])) {
 				score += 8.0;
-				count++;
 			}
 
 			if (text.contains(keywords[i])) {
 				score += 2.0;
-				count++;
-			}
-
-			if (subTitles.contains(keywords[i])) {
-				score += 4.0;
-				count++;
 			}
 
 		}
-		score /= count == 0 ? 1 : count;
-		return score > 14.0 ? 14.0 : score;
+		score /= (keywords.length == 0 ? 1 : keywords.length);
+		return score > 10.0 ? 10.0 : score;
 	}
 
 	private double getFrequency() {
@@ -72,7 +61,7 @@ public class MarkLink {
 			score += count;
 		}
 		// score /= keywords.length == 0 ? 1 : keywords.length;
-		return score > 1000.0 ? 1000.0 : score;
+		return score > 300.0 ? 300.0 : score;
 	}
 
 	private double getDistance() {
@@ -110,12 +99,13 @@ public class MarkLink {
 
 		}
 
-		return score / (count > 0 ? count : 1);
+		return (score / (count > 0 ? count : 1)) > 1000 ? 1000
+				: (score / (count > 0 ? count : 1));
 	}
 
 	public double getScore() {
 		FIS fis = FIS.load("conf/rules.fcl", true); // Load and parse the FCL
-		FunctionBlock fb = fis.getFunctionBlock("WebSpider");
+		// FunctionBlock fb = fis.getFunctionBlock("WebSpider");
 		// JFuzzyChart.get().chart(fis);// Display the linguistic variables and
 		// terms
 		fis.setVariable("position", this.getPosition()); // Apply a
@@ -125,7 +115,7 @@ public class MarkLink {
 		fis.setVariable("frequency", this.getFrequency());
 		fis.setVariable("distance", this.getDistance());
 		fis.evaluate(); // Execute the fuzzy inference engine
-		Variable tip = fb.getVariable("score");
+		// Variable tip = fb.getVariable("score");
 		// System.out.println(tip.getValue());
 		// JFuzzyChart.get().chart(tip, tip.getDefuzzifier(), true);
 		return fis.getVariable("score").getValue();
