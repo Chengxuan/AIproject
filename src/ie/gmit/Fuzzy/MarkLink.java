@@ -5,6 +5,7 @@ import java.util.PriorityQueue;
 
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
+import net.sourceforge.jFuzzyLogic.plot.JFuzzyChart;
 import net.sourceforge.jFuzzyLogic.rule.Variable;
 
 import org.jsoup.Jsoup;
@@ -31,7 +32,7 @@ public class MarkLink {
 			// System.out.println(hTags.text());
 			this.subTitles = hTags.text();
 		} catch (Exception e) {
-			System.out.println("URL not valid:" + e.getMessage());
+			// System.out.println("URL not valid:" + e.getMessage());
 		}
 	}
 
@@ -66,7 +67,6 @@ public class MarkLink {
 			int count = 0;
 			while (index != -1) {
 				index = text.indexOf(keywords[i], index + 1);
-
 				count++;
 			}
 			score += count;
@@ -77,15 +77,40 @@ public class MarkLink {
 
 	private double getDistance() {
 		double score = 0.0;
-		PriorityQueue<Double> abd = new PriorityQueue<Double>(10,
-				new Comparator<Double>() {
-					@Override
-					public int compare(Double o1, Double o2) {
-						// TODO Auto-generated method stub
-						return Double.compare(o1, o2);
+		int count = 0;
+		if (keywords.length > 1) {
+			PriorityQueue<Integer> total = new PriorityQueue<Integer>(1000,
+					new Comparator<Integer>() {
+						@Override
+						public int compare(Integer o1, Integer o2) {
+							// TODO Auto-generated method stub
+							return Integer.compare(o1, o2);
+						}
+					});
+
+			for (int i = 0; i < keywords.length - 1; i++) {
+
+				int index = text.indexOf(keywords[i]);
+				while (index != -1) {
+					index = text.indexOf(keywords[i], index + 1);
+					for (int j = i + 1; j < keywords.length; j++) {
+						if (text.indexOf(keywords[j], index + 1) - index >= 0) {
+							total.offer(text.indexOf(keywords[j], index + 1)
+									- index);
+						}
 					}
-				});
-		return score;
+				}
+
+			}
+
+			while (!total.isEmpty() && count < 6) {
+				score += total.poll();
+				count++;
+			}
+
+		}
+
+		return score / (count > 0 ? count : 1);
 	}
 
 	public double getScore() {
@@ -106,19 +131,16 @@ public class MarkLink {
 		return fis.getVariable("score").getValue();
 	}
 
-	// public static void main(String[] args) {
-	// MarkSchema ms = new MarkSchema(4, 20, 0);
-	// // System.out.println(MarkLink.getScore(ms));
+	public void showCretia() {
+		FIS fis = FIS.load("conf/rules.fcl", true); // Load and parse the FCL
+		// FunctionBlock fb = fis.getFunctionBlock("WebSpider");
+		JFuzzyChart.get().chart(fis);// Display the linguistic variables and
+	}
 
-	// abd.add(125.21);
-	// abd.add(123.02);
-	// abd.add(123.03);
-	// abd.add(124.01);
-	// abd.add(125.01);
-	// abd.add(123.21);
-	// while (!abd.isEmpty()) {
-	// System.out.println(abd.poll());
-	// }
+	public static void main(String[] args) {
+		MarkLink ml = new MarkLink(null, null);
+		ml.showCretia();
+	}
 	// }
 
 }

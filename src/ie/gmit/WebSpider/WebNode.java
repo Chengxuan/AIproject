@@ -1,4 +1,4 @@
-package ie.gmit.WebNode;
+package ie.gmit.WebSpider;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -64,7 +64,7 @@ public class WebNode implements Comparable<WebNode> {
 	}
 
 	public boolean isGoalNode(double threshold) {
-		return this.score / 100 >= threshold ? true : false;
+		return (this.score % 100) >= threshold ? true : false;
 	}
 
 	public String toString() {

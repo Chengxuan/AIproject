@@ -1,7 +1,6 @@
 package ie.gmit.WebSpider;
 
 import ie.gmit.Fuzzy.MarkLink;
-import ie.gmit.WebNode.WebNode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +15,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class WebSpider {
-	private static final int NTHREDS = 20;
+	private static final int NTHREDS = 100;
 	private static ExecutorService executor;
 	private static String[] keywords;
 	private static double threshold;
@@ -25,6 +24,7 @@ public class WebSpider {
 	private static Queue<WebNode> queue = new PriorityQueue<WebNode>();
 	private static volatile Map<String, WebNode> hisMap = new HashMap<String, WebNode>();
 	private static boolean up = false;
+	private static WebNode highest;
 
 	private WebSpider() {
 		super();
@@ -41,12 +41,16 @@ public class WebSpider {
 	}
 
 	public void search(WebNode node) {
+		WebSpider.highest = node;
 		queue.add(node);
 		while (!queue.isEmpty() || up) {
 			if (!up) {
 				WebNode tmpNode = queue.poll();
-
-				if (tmpNode.isGoalNode(WebSpider.threshold)) {
+				if (WebSpider.highest.getScore() < tmpNode.getScore()) {
+					WebSpider.highest = tmpNode;
+				}
+				if (tmpNode.isGoalNode(WebSpider.threshold)
+						&& tmpNode.getScore() / 100 >= keywords.length) {
 					System.out.println("Reached goal node "
 							+ tmpNode.getNodeURL());
 					while (tmpNode.getParent() != null) {
@@ -58,7 +62,8 @@ public class WebSpider {
 				} else {
 
 					System.out.println("visiting - >" + tmpNode.getNodeURL()
-							+ tmpNode.getDepth());
+							+ tmpNode.getDepth() + "--------"
+							+ tmpNode.getScore());
 
 					if (tmpNode.getDepth() < WebSpider.depth) {
 						Runnable worker = new ChildrenParser(tmpNode);
@@ -75,8 +80,23 @@ public class WebSpider {
 
 		}
 		if (queue.isEmpty() && !up) {
-			System.out.println();
-			System.out.println("No result");
+			if (WebSpider.highest.isGoalNode(WebSpider.threshold)) {
+				System.out.println("Reached goal node "
+						+ WebSpider.highest.getNodeURL());
+				while (WebSpider.highest.getParent() != null) {
+					WebSpider.highest = WebSpider.highest.getParent();
+					System.out.println(WebSpider.highest.getNodeURL());
+				}
+			} else {
+				System.out.println("No proper result");
+				System.out.println("Most possible:"
+						+ WebSpider.highest.getNodeURL());
+				while (WebSpider.highest.getParent() != null) {
+					WebSpider.highest = WebSpider.highest.getParent();
+					System.out.println(WebSpider.highest.getNodeURL());
+				}
+			}
+
 		}
 
 	}
