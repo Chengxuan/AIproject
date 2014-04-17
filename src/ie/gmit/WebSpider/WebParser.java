@@ -14,7 +14,8 @@ public class WebParser {
 				keywordsList.add(args[i].toLowerCase().trim());
 			}
 			if (!keywordsList.isEmpty()) {
-				String[] keywords = keywordsList.toArray(new String[keywordsList.size()]);
+				String[] keywords = keywordsList
+						.toArray(new String[keywordsList.size()]);
 				MarkLink ml = new MarkLink(keywords, url);
 				WebNode wn = new WebNode(url);
 				wn.setDepth(0);
@@ -23,7 +24,12 @@ public class WebParser {
 				ws.search(wn);
 			}
 		} else {
-			System.out.println("Invalid Input!");
+			if (args.length == 1 && args[0].equalsIgnoreCase("showfuz")) {
+				MarkLink ml = new MarkLink(null, null);
+				ml.showCretia();
+			} else {
+				System.out.println("Invalid Input!");
+			}
 		}
 
 	}

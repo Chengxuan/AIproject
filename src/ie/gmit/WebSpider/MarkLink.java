@@ -100,7 +100,7 @@ public class MarkLink {
 
 		}
 
-		return (score / (count > 0 ? count : 1)) > 1000 ? 1000
+		return (score / (count > 0 ? count : 1)) > 300 ? 300
 				: (score / (count > 0 ? count : 1));
 	}
 
@@ -127,10 +127,6 @@ public class MarkLink {
 		JFuzzyChart.get().chart(fis);// Display the linguistic variables and
 	}
 
-	public static void main(String[] args) {
-		MarkLink ml = new MarkLink(null, null);
-		ml.showCretia();
-	}
 	// }
 
 }
