@@ -42,6 +42,8 @@ public class WebSpider {
 		WebSpider.highest = node;
 		queue.add(node);
 		while (!queue.isEmpty() || up) {
+			for (int i = 0; i < 3; i++)
+				;
 			if (!up) {
 				WebNode tmpNode = queue.poll();
 				while (tmpNode.getScore() < 10
@@ -52,7 +54,7 @@ public class WebSpider {
 				if (WebSpider.highest.getScore() < tmpNode.getScore()) {
 					WebSpider.highest = tmpNode;
 				}
-				if (tmpNode.isGoalNode(WebSpider.threshold / 2)
+				if (tmpNode.isGoalNode(WebSpider.threshold)
 						&& tmpNode.getScore() / 100 >= keywords.length) {
 					System.out.println("Reached goal node "
 							+ tmpNode.getNodeURL());
@@ -116,6 +118,7 @@ public class WebSpider {
 
 		@Override
 		public void run() {
+
 			PriorityQueue<WebNode> urlQue = new PriorityQueue<WebNode>();
 			try {
 				Document doc = Jsoup.connect(wbn.getNodeURL()).get();

@@ -10,11 +10,11 @@ public class WebParser {
 			String url = args[0];
 			Queue<String> keywordsList = new LinkedList<String>();
 			for (int i = 1; i < args.length; i++) {
+				System.out.println(args[i]);
 				keywordsList.add(args[i].toLowerCase().trim());
 			}
 			if (!keywordsList.isEmpty()) {
-				String[] keywords = (String[]) keywordsList.toArray();
-
+				String[] keywords = keywordsList.toArray(new String[keywordsList.size()]);
 				MarkLink ml = new MarkLink(keywords, url);
 				WebNode wn = new WebNode(url);
 				wn.setDepth(0);

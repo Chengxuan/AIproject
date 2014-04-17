@@ -11,13 +11,14 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 public class MarkLink {
-
+	private static FIS fis;
 	private String[] keywords = {};
 	private String title = "";
 	private String subTitles = "";
 	private String text = "";
 
 	public MarkLink(String[] keywords, String URL) {
+		fis = FIS.load("conf/rules.fcl", true);
 		this.keywords = keywords;
 		try {
 			Document doc = Jsoup.connect(URL).get();
@@ -104,7 +105,7 @@ public class MarkLink {
 	}
 
 	public double getScore() {
-		FIS fis = FIS.load("conf/rules.fcl", true); // Load and parse the FCL
+		// Load and parse the FCL
 		// FunctionBlock fb = fis.getFunctionBlock("WebSpider");
 		// JFuzzyChart.get().chart(fis);// Display the linguistic variables and
 		// terms
@@ -122,7 +123,6 @@ public class MarkLink {
 	}
 
 	public void showCretia() {
-		FIS fis = FIS.load("conf/rules.fcl", true); // Load and parse the FCL
 		// FunctionBlock fb = fis.getFunctionBlock("WebSpider");
 		JFuzzyChart.get().chart(fis);// Display the linguistic variables and
 	}
