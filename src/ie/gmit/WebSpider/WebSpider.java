@@ -1,7 +1,5 @@
 package ie.gmit.WebSpider;
 
-import ie.gmit.Fuzzy.MarkLink;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -46,13 +44,15 @@ public class WebSpider {
 		while (!queue.isEmpty() || up) {
 			if (!up) {
 				WebNode tmpNode = queue.poll();
-				if (tmpNode.getScore() < 10) {
-					queue.clear();
+				while (tmpNode.getScore() < 10
+						&& tmpNode.getDepth() > WebSpider.depth - 1
+						&& !queue.isEmpty()) {
+					tmpNode = queue.poll();
 				}
 				if (WebSpider.highest.getScore() < tmpNode.getScore()) {
 					WebSpider.highest = tmpNode;
 				}
-				if (tmpNode.isGoalNode(WebSpider.threshold)
+				if (tmpNode.isGoalNode(WebSpider.threshold / 2)
 						&& tmpNode.getScore() / 100 >= keywords.length) {
 					System.out.println("Reached goal node "
 							+ tmpNode.getNodeURL());
@@ -80,6 +80,9 @@ public class WebSpider {
 
 			}
 
+		}
+		if (!WebSpider.executor.isShutdown()) {
+			WebSpider.executor.shutdown();
 		}
 		if (queue.isEmpty() && !up) {
 			if (WebSpider.highest.isGoalNode(WebSpider.threshold)) {
@@ -137,7 +140,7 @@ public class WebSpider {
 			} catch (Exception e) {
 				System.out.println("URL not valid:" + e.getMessage());
 			}
-			for (int i = 0; i < WebSpider.breadth; i++) {
+			for (int i = 0; i < WebSpider.breadth && i < urlQue.size(); i++) {
 				// for (int i = children.length - 1; i >= 0; i--) {
 				// System.out.println(node.getNextChildren());
 				if (!urlQue.isEmpty()) {

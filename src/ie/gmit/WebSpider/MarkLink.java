@@ -1,4 +1,4 @@
-package ie.gmit.Fuzzy;
+package ie.gmit.WebSpider;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
