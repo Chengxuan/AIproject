@@ -7,9 +7,21 @@ package ie.gmit.WebSpider;
  * 
  */
 public class WebSpider {
+	/**
+	 * Arguments:<br/>
+	 * -t change threshold of expecting goal Node<br/>
+	 * -d change depth of searching<br/>
+	 * -b change breadth of expecting goal Node<br/>
+	 * Settings should annouced before URL otherwise it will be regard as
+	 * keywords!<br/>
+	 * You can use 'SFC' to see the fuzzy chart
+	 * 
+	 * @param args
+	 *            --arguments
+	 */
 	public static void main(String[] args) {
 		// error message when use input invalid arguments
-		String notice = "Invalid Arguments:\n\t-t   change threshold of expecting goal Node"
+		String notice = "Invalid Arguments!\n\t-t   change threshold of expecting goal Node"
 				+ "\n\t-d   change depth of searching"
 				+ "\n\t-b   change breadth of expecting goal Node"
 				+ "\nSettings should annouced before URL otherwise it will be regard as keywords!"
