@@ -3,17 +3,36 @@ package ie.gmit.WebSpider;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+/**
+ * Node contains search node data
+ * 
+ * @author Chengxuan Xing
+ * 
+ */
 public class WebNode implements Comparable<WebNode> {
-	private String nodeURL;
-	private WebNode parent;
+	private String nodeURL; // URL ID
+	private WebNode parent; // parent node
+	// children node arrange by there priorities
 	private Queue<WebNode> children = new PriorityQueue<WebNode>();
-	private double score;
-	private int depth;
+	private double score; // heuristic score
+	private int depth; // depth of this node
 
+	/**
+	 * Constructor
+	 * 
+	 * @param name
+	 *            --URL of the node
+	 */
 	public WebNode(String name) {
 		this.nodeURL = name;
 	}
 
+	/**
+	 * Score node by keywords frequency in URL
+	 * 
+	 * @param keywords
+	 *            --searching keywords
+	 */
 	public void scoreURL(String[] keywords) {
 		for (int i = 0; i < keywords.length; i++) {
 			if (this.nodeURL.toLowerCase().trim()
@@ -22,82 +41,118 @@ public class WebNode implements Comparable<WebNode> {
 		}
 	}
 
+	/**
+	 * Get next children
+	 * 
+	 * @return Current highest score children node
+	 */
 	public WebNode getNextChildren() {
 		return this.children.poll();
 	}
 
-	public boolean isLeaf() {
-		if (children.size() > 0) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
+	/**
+	 * Get the amount of child nodes
+	 * 
+	 * @return Amount of children
+	 */
 	public int getChildNodeCount() {
 		return children.size();
 	}
 
+	/**
+	 * Add a child to the node
+	 * 
+	 * @param child
+	 *            --child node for adding
+	 */
 	public void addChildNode(WebNode child) {
 		children.add(child);
 	}
 
-	public void removeChild(WebNode child) {
-		children.remove(child);
-	}
-
+	/**
+	 * Get the URL of the node
+	 * 
+	 * @return URL
+	 */
 	public String getNodeURL() {
 		return nodeURL;
 	}
 
+	/**
+	 * Set the URL of the node
+	 * 
+	 * @param nodeName
+	 *            --URL
+	 */
 	public void setNodeURL(String nodeName) {
 		this.nodeURL = nodeName;
 	}
 
+	/**
+	 * Judge whether current node satisfy threshold or not
+	 * 
+	 * @param threshold
+	 *            --expecting goal node score
+	 * @return true -- satisfy<br/>
+	 *         false -- not satisfy
+	 */
 	public boolean isGoalNode(double threshold) {
 		return (this.score % 100) >= threshold ? true : false;
 	}
 
 	/**
-	 * @return the score
+	 * Return the heuristic score of the node
+	 * 
+	 * @return score of node
 	 */
 	public double getScore() {
 		return score;
 	}
 
 	/**
+	 * Set score of the node
+	 * 
 	 * @param score
-	 *            the score to set
+	 *            --score to set
 	 */
 	public void setScore(double score) {
 		this.score += score;
 	}
 
 	/**
-	 * @return the parent
+	 * Get the parent of the node
+	 * 
+	 * @return parent
 	 */
 	public WebNode getParent() {
 		return parent;
 	}
 
 	/**
+	 * Set the parent of the node
+	 * 
 	 * @param parent
-	 *            the parent to set
+	 *            --parent node
 	 */
 	public void setParent(WebNode parent) {
 		this.parent = parent;
 	}
 
 	/**
-	 * @return the depth
+	 * Get the depth of the node
+	 * 
+	 * @return depth
 	 */
 	public int getDepth() {
 		return depth;
 	}
 
 	/**
+	 * 
+	 * Set the depth of the node
+	 * 
 	 * @param depth
-	 *            the depth to set
+	 *            --depth
 	 */
 	public void setDepth(int depth) {
 		this.depth = depth;
