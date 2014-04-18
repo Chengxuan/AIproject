@@ -22,12 +22,12 @@ public class MarkLink {
 		this.keywords = keywords;
 		try {
 			Document doc = Jsoup.connect(URL).get();
-			this.title = doc.title();
-			this.text = doc.text();
+			this.title = doc.title().toLowerCase();
+			this.text = doc.text().toLowerCase();
 			// System.out.println(doc.getElementsByTag("h2").get(2).text());
 			Elements hTags = doc.select("h1, h2, h3, h4, h5, h6");
 			// System.out.println(hTags.text());
-			this.subTitles = hTags.text();
+			this.subTitles = hTags.text().toLowerCase();
 		} catch (Exception e) {
 			// System.out.println("URL not valid:" + e.getMessage());
 		}
@@ -62,7 +62,7 @@ public class MarkLink {
 			score += count;
 		}
 		// score /= keywords.length == 0 ? 1 : keywords.length;
-		return score > 300.0 ? 300.0 : score;
+		return score > 100.0 ? 100.0 : score;
 	}
 
 	private double getDistance() {
@@ -100,7 +100,7 @@ public class MarkLink {
 
 		}
 
-		return (score / (count > 0 ? count : 1)) > 300 ? 300
+		return (score / (count > 0 ? count : 1)) > 60 ? 60
 				: (score / (count > 0 ? count : 1));
 	}
 
