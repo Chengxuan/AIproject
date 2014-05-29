@@ -8,36 +8,56 @@ Please keep “fuzzy.jar” “lib” and “conf” folder in the same director
 Please keep “fuzzy.jar” “lib” and “conf” folder in the same directory!
 Please keep “fuzzy.jar” “lib” and “conf” folder in the same directory!
 
+
 ==================How to use==============
+
+
 —>CD to current directory.
+
 —>java -jar fuzzy.jar args[0]:
 
 Arguments:
+
 	-t   change threshold of expecting goal Node (default is 80)
+
 	-d   change depth of searching               (default is 4)
+
 	-b   change breadth of expecting goal Node   (default is 2)
 
+
 Settings should annouced before URL otherwise it will be regard as keywords!
+
 You can use 'SFC' to see the fuzzy chart
 
 
 For rich info website (which means keywords will appears a lot) 80 is a fair threshold.
+
 Example:
+
 ->java -jar fuzzy.jar https://en.wikipedia.org/wiki/Disco nu disco
 
 
 For weak info website (which means keywords may only appears in title, like a news) 40 is a fair threshold.
+
 Example:
+
 ->java -jar fuzzy.jar -t 40 -d 5 -b 4 https://en.wikipedia.org/wiki/Disco nu funk
 
 ==========Disadvantage & Limitation==========
 
 My assignment was testing using WIKIPEDIA web site, whose URLs may contains most keywords.
+
 So if keywords appears in URL, this search engine will find it soon.
+
 If not, it need luck to find the result:
+
 When get the child nodes of a web page, we order them by frequency of keywords appears in its URL.
+
 When add them to their parents node with a breadth limitation, a heuristic calculation will begin.
-So if the best link doesn’t contain keywords in its link and its position in the queue is greater than the breadth limitation, it will be skipped.
+
+So if the best link doesn’t contain keywords in its link and its position in the queue is greater than the breadth 
+limitation, it will be skipped.
+
 
 
 ====================Features==================
